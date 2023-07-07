@@ -26,20 +26,20 @@ namespace dotnet_rpg.Controllers
         {
            // var userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
 
-           var nameIdentifierClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-           if (nameIdentifierClaim == null)
-           {
-               // Handle the case where the claim is not found
-               return BadRequest("NameIdentifier claim not found");
-           }
+           // var nameIdentifierClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+           // if (nameIdentifierClaim == null)
+           // {
+           //     // Handle the case where the claim is not found
+           //     return BadRequest("NameIdentifier claim not found");
+           // }
+           //
+           // if (!int.TryParse(nameIdentifierClaim.Value, out var userId))
+           // {
+           //     // Handle the case where parsing the user ID fails
+           //     return BadRequest("Invalid user ID");
+           // }
 
-           if (!int.TryParse(nameIdentifierClaim.Value, out var userId))
-           {
-               // Handle the case where parsing the user ID fails
-               return BadRequest("Invalid user ID");
-           }
-
-           return Ok(await _characterService.GetAllCharacters(userId));
+           return Ok(await _characterService.GetAllCharacters());
         }
 
         [HttpGet("{id}")]
@@ -61,9 +61,8 @@ namespace dotnet_rpg.Controllers
         public async Task <IActionResult> AddCharacter([FromBody] AddCharacterDto newCharacter)
         {
 
-            var userid = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
             await _characterService.AddCharacter(newCharacter);
-            return Ok(await _characterService.GetAllCharacters(userid));
+            return Ok(await _characterService.GetAllCharacters());
         }
 
         [HttpPut]
