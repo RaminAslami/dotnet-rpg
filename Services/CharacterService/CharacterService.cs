@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Xml.Xsl;
 using AutoMapper;
 using dotnet_rpg.Data;
 using dotnet_rpg.Dtos.Character;
@@ -24,6 +25,8 @@ public class CharacterService : ICharacterService
     //get user ID
     private int GetUserId() =>
         int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+    private string GetUserRole() => _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
     
     private static List<Character> characters = new List<Character>
     {
@@ -43,7 +46,27 @@ public class CharacterService : ICharacterService
     public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
     {
         ServiceResponse<List<GetCharacterDto>> serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-        var dbCharacters = await _context.Characters.Where(c => c.User.Id == GetUserId()).ToListAsync();
+    
+        var dbCharacters = await _context.Characters.Include(c => c.Weapon)
+            .Include(c => c.CharacterSkills).ThenInclude(cs => cs.Skill)
+            .Where(c => c.User.Id == GetUserId()).ToListAsync();
+
+
+        var dbCharacters2 = GetUserRole().Equals("Admin")
+            ? await _context.Characters.Include(c => c.Weapon)
+                .Include(c => c.CharacterSkills).ThenInclude(cs => cs.Skill).ToListAsync()
+            : await _context.Characters.Include(c => c.Weapon)
+                .Include(c => c.CharacterSkills).ThenInclude(cs => cs.Skill).Where(c => c.User.Id == GetUserId()).ToListAsync();
+        
+        // var character = await _dataContext.Characters.Include(c => c.Weapon)
+        //     .Include(c => c.CharacterSkills)
+        //     .ThenInclude(cs => cs.Skill)
+        //     .Where(c => c.User.Id
+        //                 == GetUserId() &&
+        //                 characterSkill.CharacterId == c.Id)
+        //     .FirstOrDefaultAsync();
+        
+        
         serviceResponse.Data = _mapper.Map<List<GetCharacterDto>>(dbCharacters);
         return serviceResponse;
 
@@ -130,8 +153,7 @@ public class CharacterService : ICharacterService
                 serviceResponse.Success = false;
                 serviceResponse.Message = "Character has not been found!";
             }
-
-
+            
             //better practice since we don't have to map every single property!
 
             serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);

@@ -32,7 +32,13 @@ namespace dotnet_rpg.Migrations
                     b.Property<int>("Class")
                         .HasColumnType("int");
 
+                    b.Property<int>("Defeats")
+                        .HasColumnType("int");
+
                     b.Property<int>("Defense")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Fights")
                         .HasColumnType("int");
 
                     b.Property<int>("HitPoints")
@@ -51,11 +57,49 @@ namespace dotnet_rpg.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Victories")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Characters");
+                });
+
+            modelBuilder.Entity("dotnet_rpg.Models.CharacterSkill", b =>
+                {
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SkillId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CharacterId", "SkillId");
+
+                    b.HasIndex("SkillId");
+
+                    b.ToTable("CharacterSkills");
+                });
+
+            modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Damage")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Skills");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.User", b =>
@@ -73,6 +117,12 @@ namespace dotnet_rpg.Migrations
                     b.Property<byte[]>("PasswordSalt")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Player");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -120,6 +170,25 @@ namespace dotnet_rpg.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("dotnet_rpg.Models.CharacterSkill", b =>
+                {
+                    b.HasOne("dotnet_rpg.Models.Character", "Character")
+                        .WithMany("CharacterSkills")
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("dotnet_rpg.Models.Skill", "Skill")
+                        .WithMany("CharacterSkill")
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+
+                    b.Navigation("Skill");
+                });
+
             modelBuilder.Entity("dotnet_rpg.Models.Weapon", b =>
                 {
                     b.HasOne("dotnet_rpg.Models.Character", "Character")
@@ -133,8 +202,15 @@ namespace dotnet_rpg.Migrations
 
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
                 {
+                    b.Navigation("CharacterSkills");
+
                     b.Navigation("Weapon")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
+                {
+                    b.Navigation("CharacterSkill");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.User", b =>
